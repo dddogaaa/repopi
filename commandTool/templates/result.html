@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Command Execution Result</title>
+    <style>
+        #logo {
+            height: 200px;
+            width: 350px;
+        } 
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: larger;
+        }
+        #container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        #container .items {
+            margin: 10px;
+        }
+        #container .items a {
+            text-decoration: none;
+            color: rgb(255, 197, 39);
+            transition: font-size 0.3s ease;
+        }
+        #container .items a:hover {
+            font-size: larger;
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="https://dataera.com.tr/wp-content/uploads/2018/07/pardus-logo-820x450.jpg" alt="pardusLogo">
+    <h1>Command Execution Result</h1>
+   
+
+    <h3>Status: {{ status }}</h3>
+
+    {% if log_file %}
+        <div id="container">
+            <div class="items"><h3>Log File:</h3> </div>
+            <div class="items"><b><a href="{% url 'serve_log_file' log_file %}"> {{ log_file }} </a></b></div>
+        </div>
+        
+    {% endif %}
+
+    <h3>Execution Duration: {{ duration_seconds }} seconds</h3>
+
+    {% if log_content %}
+    <h3>Command Output:</h3>
+    <pre>{{ log_content }}</pre>
+    {% endif %}
+
+    <!-- <a href="index.html">Back to Execute Command</a> -->
+
+    <footer></footer>
+</body>
+</html>

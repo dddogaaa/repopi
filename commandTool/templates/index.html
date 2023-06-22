@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Command Execution</title>
+
+    <style>
+        #logo {
+            height: 200px;
+            width: 350px;
+        } 
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: larger;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        button{
+            background-color: #fff; /* Green */
+            border: 0.5px solid rgb(116, 114, 114);
+            color: black;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.5s ease;
+        }
+
+        button:hover {
+            background-color: rgb(255, 197, 39);
+            border: 0.5px solid rgb(255, 197, 39);
+        }
+
+
+        #command {
+            border: 0.5px solid rgb(116, 114, 114);
+            padding: 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <img id="logo" src="https://dataera.com.tr/wp-content/uploads/2018/07/pardus-logo-820x450.jpg" alt="pardusLogo">
+    <h1>Command Execution</h1>
+   
+    
+    <form id="commandForm" method="post" action="{% url 'execute_command' %}">
+        {% csrf_token %}
+        <input type="hidden" id="command" name="command">
+    </form>
+
+    <hr>
+
+    <form id="commandForm" method="post" action="{% url 'execute_command' %}">
+        {% csrf_token %}
+        <label for="command">Enter a command:</label>
+        <input type="text" id="command" name="command">
+        <button type="submit">Execute</button>
+    </form>
+
+    <hr>
+
+    <h2>Predefined Commands:</h2>
+    <div id="container">
+        <button class="selection" onclick="setCommand('ls')">List Files</button>
+        <button class="selection" onclick="setCommand('pwd')">Current Directory</button>
+        <button class="selection" onclick="setCommand('echo Hello')">Echo Hello</button>
+    </div>
+
+
+    <script>
+        function setCommand(command) {
+            document.getElementById('command').value = command;
+            document.getElementById('commandForm').submit();
+        }
+    </script>
+
+</body>
+</html>
