@@ -1,86 +1,105 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse , JsonResponse
+
+
 import os
 import subprocess
 import datetime
+import pytz
+
 from django.conf import settings as Settings
 from .models import CommandExecution
 from django.utils import timezone
 
+TR = pytz.timezone('Europe/Istanbul')
 
-def run_command(command):
-    creationTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    logs_dir = "logs"
+def execute_command(request):
+    if request.method == 'GET':
+        command = request.GET.get('command')
+        if command:
+            try:
+                logs_dir = set_dir(request)
+                creationTime = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
+                output_file = os.path.join(logs_dir, f"{creationTime}---{command}.output")
+                with open(output_file, 'w') as file:
+                    start_time = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
+                    result = subprocess.run (
+                        command,
+                        shell=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    end_time = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
+                    status = result.returncode
+                    # Buraya doğanın file.write gelecek.
+                    file.write(result.stdout)
+                    file.write(result.stderr)
+                    #execution = CommandExecution(command=command, status=status, output_file=output_file,start_execution=start_time, end_execution=end_time)
+                    #execution.save()
+                    #execution_time = 
+                    # return JsonResponse'da execution time eklenecek.
+                    return JsonResponse({'command': command, 'output_file': output_file, 'status': status })
+
+            except subprocess.CalledProcessError as e:
+                error_message = str(e)
+                return JsonResponse({'error': error_message})
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'})
+
+
+def serve_log_file(request):
+    try:
+        file_name = request.GET.get('file_name')
+        logs_dir = set_dir(request)
+        file_path = os.path.join(logs_dir, file_name)
+
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+            return JsonResponse({'file_content': file_content}, safe=False)
+        else:
+            return JsonResponse({'error': f'Output file {file_name} not found.'})
+
+    except Exception as e:
+        return JsonResponse({'error': f'An error occurred: {str(e)}'})
+
+def list_logs(request):
+
+    if request.method == 'GET':
+        logs_dir = set_dir(request)
+        logs = os.listdir(logs_dir)
+        logs.sort(key=lambda x: os.path.getmtime(os.path.join(logs_dir,x)))
+
+        response_data = {'logs': logs}
+        return JsonResponse(response_data)
+    else:
+        error_message = {'error': 'Method not allowed'}
+        return JsonResponse(error_message, status=405)
+
+
+def set_dir(request):
+    logs_dir = Settings.LOGS_DIR
+
+    if not logs_dir:
+        logs_dir = os.path.join(Settings.BASE_DIR, 'logs')
 
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
 
-    log_file = os.path.join(logs_dir, f"{creationTime}-{command}.log")
-
-    process = subprocess.run(
-        command,
-        shell=True,
-        capture_output=True,
-        text=True
-    )
-
-    with open(log_file, 'w') as file:
-        file.write(process.stdout)
-        file.write(process.stderr)
-
-    status = process.returncode
-
-    return status, log_file
+    return logs_dir
 
 
-def execute_command(request):
-    if request.method == 'POST':
-        command = request.POST.get('command')
-        log_content = ""
-
-        start_time = timezone.now()
-        
-        status, log_file = run_command(command)
-
-        end_time = timezone.now()
+     
 
 
-        if os.path.isfile(log_file):
-            with open(log_file, 'r') as file:
-                log_content = file.read()
 
 
-        execution = CommandExecution(command=command, status=status, log_file=log_file, start_execution=start_time,end_execution=end_time)
-        execution.save()
-
-        return render(request, 'result.html', {'command': command, 'log_file': log_file, 'log_content': log_content, 'status': status, 'duration_seconds': execution.duration})
-
-    return render(request, 'index.html')
 
 
-def serve_log_file(request, log_file_name):
-    try:
-        with open(log_file_name, 'r') as file:
-            file_content = file.read()
-            
-            # If you want the file downloadable:
-            # response = HttpResponse(file_content, content_type='text/plain')
-            # response['Content-Disposition'] = f'attachment; filename={log_file_name}'
-            # return response
-            
-            return HttpResponse(file_content, content_type='text/plain')
 
-    except FileNotFoundError:
-        return HttpResponse(f'Log file {log_file_name} not found.', status=404)
 
-def list_logs(request):
 
-    logs_dir = Settings.LOGS_DIR
-    logs = os.listdir(logs_dir)
-    logs.sort(key=lambda x: os.path.getmtime(os.path.join(logs_dir,x)))
-
-    context = {'logs': logs}
-    return render(request, 'lists.html', context)
 
 
 
