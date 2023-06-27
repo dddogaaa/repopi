@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-qay_q%@j@+oucw%l=b16_(ciw%xk60&g0+g-)94z&@cr*x6%uz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # Directory
 # İsteğe bağlı dizin tırnaklar arasına yazılır.
 LOGS_DIR = ''
@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'cmdRun',
+    'commandTool',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'isoRep.urls'
+ROOT_URLCONF = 'repopi.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'isoRep.wsgi.application'
+WSGI_APPLICATION = 'repopi.wsgi.application'
 
 
 # Database
