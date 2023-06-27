@@ -1,18 +1,38 @@
-# repopi
-Pardus repository managment tool 
+# Repository Management Tool
 
-http://127.0.0.1:8000/run-commands/?command=ls   
+This tool provides functionalities for managing repositories.
 
-http://127.0.0.1:8000/list-logs/
+## Endpoints
 
-http://127.0.0.1:8000/filter-by-commands/?command=ls
+- **Run Commands**: Execute a command and retrieve the output.
 
-http://127.0.0.1:8000/filter-by-commands/(id_num)   -> '/' at the end is optional. Handled in urls.py
+  - URL: `http://127.0.0.1:8000/run-commands/?command=ls`
 
-http://127.0.0.1:8000/filter-by-date/?num_days=3 
+- **List Logs**: Get a list of available logs.
 
-http://127.0.0.1:8000/filter-by-date/(id_num)
+  - URL: `http://127.0.0.1:8000/list-logs/`
 
-http://127.0.0.1:8000/filter-by-status/?status=0
+- **Filter by Commands**: Filter commands by command name.
 
-http://127.0.0.1:8000/filter-by-status/(id_num)
+  - URL: `http://127.0.0.1:8000/filter-by-commands/?command=ls`
+
+- **Get Command Output**: Get the output of a specific command by ID.
+
+  - URL: `http://127.0.0.1:8000/filter-by-commands/(id_num)` (Trailing slash at the end is optional)
+
+- **Filter by Date**: Filter commands by the number of days.
+
+  - URL: `http://127.0.0.1:8000/filter-by-date/?num_days=3`
+
+- **Get Command by ID**: Get a specific command by ID.
+
+  - URL: `http://127.0.0.1:8000/filter-by-date/(id_num)`
+
+- **Filter by Status**: Filter commands by status.
+
+  - URL: `http://127.0.0.1:8000/filter-by-status/?status=0`
+
+- **Get Command by ID**: Get a specific command by ID.
+
+  - URL: `http://127.0.0.1:8000/filter-by-status/(id_num)` (Trailing slash at the end is optional)
+
