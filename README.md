@@ -14,7 +14,7 @@ This tool provides functionalities for managing repositories.
 
 - **Filter by Commands**: Filter commands by command name.
 
-  - URL: `http://127.0.0.1:8000/filter-by-commands/?(command_name)`
+  - URL: `http://127.0.0.1:8000/filter-by-commands/?command=(command_name)`
 
 - **Get Command Output**: Get the output of a specific command by ID.
 
