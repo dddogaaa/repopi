@@ -232,7 +232,7 @@ def list_outputs(request):
 
         file = create_dir(outputs_dir)
         outputs = os.listdir(outputs_dir)
-        outputs.sort(key=lambda x: os.path.getmtime(os.path.join(outputs_dir, x)))
+        outputs.sort(key=lambda x: os.path.getmtime(os.path.join(outputs_dir, x)), reverse=True)
 
         response_data = {'outputs': outputs}
 
