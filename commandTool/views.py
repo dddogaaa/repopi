@@ -1,94 +1,3 @@
-# from django.shortcuts import render
-# from django.http import HttpResponse , JsonResponse
-
-
-# import os
-# import subprocess
-# import datetime
-# import pytz
-
-# from django.conf import settings as Settings
-# from .models import CommandExecution
-# from django.utils import timezone
-
-# TR = pytz.timezone('Europe/Istanbul')
-
-# def execute_command(request):
-#     if request.method == 'GET':
-#         command = request.GET.get('command')
-#         if command:
-#             try:
-#                 logs_dir = set_dir(request)
-#                 creationTime = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
-#                 output_file = os.path.join(logs_dir, f"{creationTime}---{command}.output")
-#                 with open(output_file, 'w') as file:
-#                     start_time = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
-#                     result = subprocess.run (
-#                         command,
-#                         shell=True,
-#                         capture_output=True,
-#                         text=True
-#                     )
-#                     end_time = datetime.datetime.now(TR).strftime("%Y-%m-%d_%H-%M-%S")
-#                     status = result.returncode
-#                     # Buraya doğanın file.write gelecek.
-#                     file.write(result.stdout)
-#                     file.write(result.stderr)
-#                     #execution = CommandExecution(command=command, status=status, output_file=output_file,start_execution=start_time, end_execution=end_time)
-#                     #execution.save()
-#                     #execution_time = 
-#                     # return JsonResponse'da execution time eklenecek.
-#                     return JsonResponse({'command': command, 'output_file': output_file, 'status': status })
-
-#             except subprocess.CalledProcessError as e:
-#                 error_message = str(e)
-#                 return JsonResponse({'error': error_message})
-
-#     else:
-#         return JsonResponse({'error': 'Method not allowed'})
-
-
-# def serve_log_file(request):
-#     try:
-#         file_name = request.GET.get('file_name')
-#         logs_dir = set_dir(request)
-#         file_path = os.path.join(logs_dir, file_name)
-
-#         if os.path.isfile(file_path):
-#             with open(file_path, 'r') as file:
-#                 file_content = file.read()
-#             return JsonResponse({'file_content': file_content}, safe=False)
-#         else:
-#             return JsonResponse({'error': f'Output file {file_name} not found.'})
-
-#     except Exception as e:
-#         return JsonResponse({'error': f'An error occurred: {str(e)}'})
-
-# def list_logs(request):
-
-#     if request.method == 'GET':
-#         logs_dir = set_dir(request)
-#         logs = os.listdir(logs_dir)
-#         logs.sort(key=lambda x: os.path.getmtime(os.path.join(logs_dir,x)))
-
-#         response_data = {'logs': logs}
-#         return JsonResponse(response_data)
-#     else:
-#         error_message = {'error': 'Method not allowed'}
-#         return JsonResponse(error_message, status=405)
-
-
-# def set_dir(request):
-#     logs_dir = Settings.LOGS_DIR
-
-#     if not logs_dir:
-#         logs_dir = os.path.join(Settings.BASE_DIR, 'logs')
-
-#     if not os.path.exists(logs_dir):
-#         os.makedirs(logs_dir)
-
-#     return logs_dir
-
 from datetime import datetime, timedelta
 import datetime
 import time
@@ -101,6 +10,7 @@ from .models import Response
 import json
 from django.conf import settings as Settings
 
+running_commands = {} 
 
 def execute_command(command):
     start_time = time.time()
@@ -137,23 +47,22 @@ def take_time():
     return time
 
 def set_dir():
-    logs_dir = Settings.LOGS_DIR
+    outputs_dir = Settings.OUTPUTS_DIR
 
-    if not logs_dir:
-        logs_dir = os.path.join(Settings.BASE_DIR, 'outputs')
+    if not outputs_dir:
+        outputs_dir = os.path.join(Settings.BASE_DIR, 'outputs')
 
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir)
+    if not os.path.exists(outputs_dir):
+        os.makedirs(outputs_dir)
 
-    return logs_dir
+    return outputs_dir
 
 def create_dir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-    time = take_time()
-    creationTime = time.strftime("%Y-%m-%d_%H:%M:%S")
-    file = os.path.join(dir_name, f"{creationTime}.log")
+    creationTime = take_time().strftime("%Y-%m-%d_%H:%M:%S")
+    file = os.path.join(dir_name, f"{creationTime}.txt")
     return file
 
 def write_output(data,output_file):
@@ -181,7 +90,15 @@ def set_response_message(response, status):
         response['message'] = 'Command not found.'
 
 def execute_command_in_thread(command, response):
+    thread = threading.current_thread()
+    running_commands[thread] = {
+        'start_time': take_time().strftime("%Y-%m-%d_%H:%M:%S"),
+        'command': command
+    }  
+
     result = execute_command(command)
+
+    del running_commands[thread]
 
     outputs_dir = set_dir()
 
@@ -210,7 +127,7 @@ def execute_command_in_thread(command, response):
 
     write_output(result, output_file)
 
-    if response['status'] != 2:  # Command execution is not in progress
+    if response['status'] != 2:  # If Command execution is not in progress
         # Update response with start time, end time, and execution time
         response['start_time'] = result['start_time']
         response['end_time'] = result['end_time']
@@ -246,6 +163,7 @@ def run_commands(request):
         response.pop('start_time', None)
         response.pop('end_time', None)
         response.pop('execution_time', None)
+   
 
     json_response = json.dumps(response, indent=2)
 
@@ -286,7 +204,7 @@ def get_output_by_id(request, command_id):
         with open(command.output_file, 'r') as file:
             output = file.read()
 
-        output = output.replace('\n', '/')
+        # output = output.replace('\n', '/')
     
         response = {
             'id': command.id,
@@ -308,13 +226,13 @@ def get_output_by_id(request, command_id):
         
         return HttpResponse(json_response, status=404, content_type='application/json')  
 
-def list_logs(request):
+def list_outputs(request):
     if request.method == 'GET':
-        logs_dir = set_dir()
+        outputs_dir = set_dir()
 
-        file = create_dir(logs_dir)
-        outputs = os.listdir(logs_dir)
-        outputs.sort(key=lambda x: os.path.getmtime(os.path.join(logs_dir, x)))
+        file = create_dir(outputs_dir)
+        outputs = os.listdir(outputs_dir)
+        outputs.sort(key=lambda x: os.path.getmtime(os.path.join(outputs_dir, x)))
 
         response_data = {'outputs': outputs}
 
@@ -389,3 +307,25 @@ def filter_by_status(request):
 
     return HttpResponse(response_data, content_type='application/json')
 
+def get_currently_running_commands():
+    currently_running = []
+    for thread, info in running_commands.items():
+        start_time = info['start_time']
+        command = info['command']
+        status = 'Running' if thread.is_alive() else 'Finished'
+        currently_running.append({
+            'start_time': start_time,
+            'status': status,
+            'command': command
+        })
+    return currently_running
+
+def get_running_commands(request):
+    currently_running = get_currently_running_commands()
+
+    response = {
+        'running_commands': currently_running
+    }
+
+    json_response = json.dumps(response, indent=2)
+    return HttpResponse(json_response, content_type='application/json')
