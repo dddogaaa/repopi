@@ -237,9 +237,7 @@ def list_outputs(request):
 
         file = create_dir(outputs_dir)
         outputs = os.listdir(outputs_dir)
-        outputs.sort(
-            key=lambda x: os.path.getmtime(os.path.join(outputs_dir, x)), reverse=True
-        )
+        outputs.sort(key=lambda x: os.path.getmtime(os.path.join(outputs_dir, x)), reverse=True)
 
         response_data = {"outputs": outputs}
 
@@ -333,3 +331,6 @@ def filter_by_status(request):
     response_data = json.dumps(response, indent=2)
 
     return HttpResponse(response_data, content_type="application/json")
+
+    json_response = json.dumps(response, indent=2)
+    return HttpResponse(json_response, content_type='application/json')
