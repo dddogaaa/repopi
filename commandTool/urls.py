@@ -12,6 +12,5 @@ urlpatterns = [
     re_path(r'^filter-by-date/(?P<command_id>\d+)/?$', get_output_by_id, name='get_output_by_id'),
     path('filter-by-status/', filter_by_status, name='filter_by_status'),
     re_path(r'^filter-by-status/(?P<command_id>\d+)/?$', get_output_by_id, name='get_output_by_id'),
-    path('running-commands/', get_running_commands, name='running-commands'),
 
 ]

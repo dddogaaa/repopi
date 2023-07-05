@@ -30,13 +30,9 @@ This tool provides functionalities for managing repositories.
 
 - **Filter by Status**: Filter commands by status.
 
-  - URL: `http://127.0.0.1:8000/filter-by-status/?status=(0_or_1)`
+  - URL: `http://127.0.0.1:8000/filter-by-status/?status=(0_1_2)`
 
 - **Get Command by ID**: Get a specific command by ID.
 
   - URL: `http://127.0.0.1:8000/filter-by-status/(id_num)` (Trailing slash at the end is optional)
-
-- **Running Commands**: Display currently running threads.
-
-  - URL: `http://127.0.0.1:8000/running-commands/`
 
