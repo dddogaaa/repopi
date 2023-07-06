@@ -148,6 +148,10 @@ def execute_command_in_thread(command, response):
 def run_commands(request):
     command = request.GET.get("command", "")
 
+    outputs_dir = set_dir()
+
+    output_file = create_dir(outputs_dir)
+
     response = {
         "status": 2,
         "message": "Command execution continue...",
@@ -155,6 +159,7 @@ def run_commands(request):
         "execution_time": "",
         "start_time": take_time().strftime("%Y-%m-%d %H:%M:%S.%f"),
         "end_time": "",
+        'output_file': output_file
     }
 
     thread = threading.Thread(
@@ -162,13 +167,11 @@ def run_commands(request):
     )
     thread.start()
 
-    # thread.join()
-
-    # If execution is still ongoing, update the response status
     if thread.is_alive():
         response["thread_ID"] = threading.get_ident()
         response["status"] = 2
         response["message"] = "Command execution still in progress."
+        response['output_file']
         response.pop("end_time", None)
         response.pop("execution_time", None)
 
@@ -333,3 +336,23 @@ def filter_by_status(request):
 
     return HttpResponse(response_data, content_type="application/json")
     
+
+def get_output_by_id(request, command_id):
+    try:
+        command = Response.objects.get(id=command_id)
+        output = ""
+        with open(command.output_file, "r") as file:
+            output = file.read()
+
+        # output = output.replace('\n', '/')
+
+        response = {"id": command.id, "command": command.command, "output": output}
+
+        json_response = json.dumps(response, indent=2)
+
+        return HttpResponse(json_response, content_type="application/json")
+
+    except Response.DoesNotExist:
+        error_response = {"error": "Command ID not found."}
+
+        json_response = json.dumps(error_response, indent=2)
