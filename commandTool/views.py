@@ -5,7 +5,7 @@ import subprocess
 import os
 import threading
 import pytz
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from .models import Response
 import json
 from django.conf import settings as Settings
@@ -71,7 +71,9 @@ def execute_command(command):
         command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
 
+
     stdout, stderr = process.communicate()
+    process.wait()
 
     end_time = time.time()
     execution_time = end_time - start_time
@@ -160,8 +162,7 @@ def run_commands(request):
     )
     thread.start()
 
-    # Check if execution takes more than 1 second
-    thread.join(timeout=1)
+    # thread.join()
 
     # If execution is still ongoing, update the response status
     if thread.is_alive():
@@ -331,6 +332,4 @@ def filter_by_status(request):
     response_data = json.dumps(response, indent=2)
 
     return HttpResponse(response_data, content_type="application/json")
-
-    json_response = json.dumps(response, indent=2)
-    return HttpResponse(json_response, content_type='application/json')
+    
