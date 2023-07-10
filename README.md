@@ -2,11 +2,13 @@
 
 This tool provides functionalities for managing repositories.
 
+The outputs of commands are saved in ../Desktop/repopi_outputs. The path can be changeable in setting.py.
+
 ## Endpoints
 
-- **Run Commands**: Execute a command and retrieve the output.
+- **Run Commands**: Execute a command.
 
-  - URL: `http://127.0.0.1:8000/run-commands/?command=(command_name)`
+  - URL: `http://127.0.0.1:8000/run/?command=(command_name)`
 
 - **List Logs**: Get a list of available logs.
 
@@ -14,25 +16,10 @@ This tool provides functionalities for managing repositories.
 
 - **Filter by Commands**: Filter commands by command name.
 
-  - URL: `http://127.0.0.1:8000/filter-by-commands/?command=(command_name)`
-
-- **Get Command Output**: Get the output of a specific command by ID.
-
-  - URL: `http://127.0.0.1:8000/filter-by-commands/(id_num)` (Trailing slash at the end is optional)
-
-- **Filter by Date**: Filter commands by the number of days.
-
-  - URL: `http://127.0.0.1:8000/filter-by-date/?num_days=(int_days_num)`
+  - URL: `http://127.0.0.1:8000/filter-commands/?command=(command_name)`
+  - URL: `http://127.0.0.1:8000/filter-commands/?status=(0_1_2)`
 
 - **Get Command by ID**: Get a specific command by ID.
 
-  - URL: `http://127.0.0.1:8000/filter-by-date/(id_num)` (Trailing slash at the end is optional)
-
-- **Filter by Status**: Filter commands by status.
-
-  - URL: `http://127.0.0.1:8000/filter-by-status/?status=(0_1_2)`
-
-- **Get Command by ID**: Get a specific command by ID.
-
-  - URL: `http://127.0.0.1:8000/filter-by-status/(id_num)` (Trailing slash at the end is optional)
+  - URL: `http://127.0.0.1:8000/filter-commands/(id_num)`
 
