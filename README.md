@@ -19,7 +19,7 @@ The outputs of commands are saved in ../Desktop/repopi_outputs. The path can be 
   - URL: `http://127.0.0.1:8000/filter-commands/?command=(command_name)`
   - URL: `http://127.0.0.1:8000/filter-commands/?status=(0_1_2)`
 
-- **Get Command by ID**: Get a specific output by ID.
+- **Get Output by ID**: Get a specific output by ID.
 
   - URL: `http://127.0.0.1:8000/filter-commands/(id_num)`
 
