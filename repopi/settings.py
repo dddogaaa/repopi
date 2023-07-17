@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-qay_q%@j@+oucw%l=b16_(ciw%xk60&g0+g-)94z&@cr*x6%uz
 DEBUG = True
 # Directory
 # İsteğe bağlı dizin tırnaklar arasına yazılır.
-DATA_FOLDER = os.path.join(os.path.expanduser("~"), "Desktop", "repopi_outputs")
+DATA_FOLDER = "/tmp"
 
 
 ALLOWED_HOSTS = [

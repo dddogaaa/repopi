@@ -1,34 +1,18 @@
 from django.shortcuts import render
 from subprocess import Popen
-from datetime import datetime,timedelta
+from datetime import datetime
 from django.conf import settings as Settings
 from .models import Result
 from django.http import HttpResponse,JsonResponse
 import json
 import os
-import time
 import pytz
 import datetime
 import threading
 
 
-COMMANDS = [
-    {'name': 'echo','command': 'echo yusuf;echo duzgun'},
-    {'name': 'ls','command': 'ls'},
-    {'name': 'pwd','command': 'pwd'},
-    {'name': 'longCmd','command': 'sleep 3;find ~;sleep 3;find ~;sleep 3;find ~'},
-    {'name': 'stream','command': 'sleep 5;ls;sleep 3;pwd'},
-    {'name': 'shortCmd','command': 'sleep 3'}, 
-    {'name': 'sl200','command': 'sleep 200'},
-    {'name': 'sl500','command': 'sleep 500'},
-    {'name': 'sl1200','command': 'sleep 1200'},
-    {'name': 'exit','command': 'exit 7'},
-    {'name': 'mousepad','command': 'mousepad'},
-    {'name': 'touch','command': 'touch'},
-]
-
 def get_data_folder():
-    return Settings.DATA_FOLDER
+    return os.path.join(Settings.DATA_FOLDER)
 
 def create_data_folder(path):
     try:
@@ -43,23 +27,18 @@ def get_date_now():
     time = datetime.datetime.now(time_zone)
     return time.strftime('%Y-%m-%d-%H-%M-%S')
 
-def run(name, command):
-    print(name+" basladi")
-    time_start = time.time()
+def run(name,command):
     date_now = get_date_now()
-
+    print(name+" basladi")
     outputs_folder = get_data_folder()
     create_data_folder(outputs_folder)
     output_file = os.path.join(outputs_folder, f"{date_now}-{name}.txt")
     print(output_file)
 
     item = {
-        'name' : name,
-        'message':'Command execution in progress.',
         'file' : output_file,
         "command": command,
         "status": 2,
-        "execution_time": None,
         "start_time": date_now,
         "end_time": None
     }
@@ -75,50 +54,31 @@ def run(name, command):
     proc.wait()
 
     returnValue = proc.poll()
-    print(returnValue)
-
 
     if  returnValue == 0 :
         result.status = 1
         result.message = 'Command executed successfully'
         result.end_time = get_date_now()
-        time_end = time.time()
-        result.execution_time = time_end -time_start
-        print('Cmd ended.')
+        print('Command finished successfully.')
     else:
-
         result.message = 'Command encountered an error.' 
         result.status = 0
         result.end_time = get_date_now()
-        time_end = time.time()
-        result.execution_time = time_end -time_start
-        print('Cmd has problem.')
+        print('Command finished with error.')
 
     result.save()
 
-def runCommand(request):
-    name = request.GET.get('command','') 
-
-    command = next((cmd for cmd in COMMANDS if cmd['name'] == name), None)
-    if command:
+def runCommand(name,command):
         thread = threading.Thread(
-        target=run, args=(command['name'], command['command']))
+        target=run, args=(name,command))
 
         thread.start()
 
         response = {
-            'message' : 'Command execution started.'
+            'message' : 'Command execution operation started.'
         }
 
         json_response = json.dumps(response, indent=2)
-
-        return HttpResponse(json_response, content_type="application/json")
-    else:
-        response_data = {
-            'message': 'Command not found'
-        }
-        
-        json_response = json.dumps(response_data, indent=2)
 
         return HttpResponse(json_response, content_type="application/json")
     
@@ -126,26 +86,21 @@ def filter_commands(request):
     status = request.GET.get("status", "")
     command = request.GET.get('command','')
 
-    command_names = [cmd['name'] for cmd in COMMANDS]
-
     filtered_data = Result.objects.all()
 
     if status:
         filtered_data = filtered_data.filter(status=status)
     if command:
-        filtered_data = filtered_data.filter(command__in=command_names)
+        filtered_data = filtered_data.filter(name=command)
 
     commands = []
     for data in filtered_data:
         command_info = {
             "id": data.id,
             "status": data.status,
-            "message": data.message,
-            'command_name': data.name,
             # "command": data.command,
             "start_time": data.start_time,
             "end_time": data.end_time,
-            "execution_time": data.execution_time,
             "file": data.file
         }
         commands.append(command_info)
@@ -178,7 +133,7 @@ def get_output_by_id(request, command_id):
 
         return HttpResponse(json_response, status=404, content_type="application/json")
     
-def list_outputs(request):
+def list_outputs(request): 
     if request.method == "GET":
         outputs_dir = get_data_folder()
 
@@ -194,3 +149,58 @@ def list_outputs(request):
     else:
         error_message = {"error": "Method not allowed"}
         return JsonResponse(error_message, status=405)
+ 
+def hello(request):
+    name = 'echo'
+    cmd = 'echo helloWorld; echo :D'
+    return runCommand(name,cmd)
+
+def getList(request):
+    name = 'ls'
+    cmd = 'ls'
+    return runCommand(name,cmd)
+
+def showPath(request):
+    name = 'pwd'
+    cmd = 'pwd'
+    return runCommand(name,cmd)
+
+def longCmd(request):
+    name = 'longCmd'
+    cmd = 'sleep 3;find ~;sleep 3;find ~;sleep 3;find ~'
+    return runCommand(name,cmd)
+
+def definitions(request):
+    cmdName = request.GET.get("command", "")
+
+    commands = [
+        {'name': 'hello', 'command': 'echo helloWorld; echo :D',  'desc' : 'echo is a command that outputs the strings that are passed to it'},
+        {'name': 'getList', 'command': 'ls', 'desc' : 'ls, lists the files in the working directory.'},
+        {'name': 'showPath', 'command': 'pwd', 'desc' :'pwd, display the current working directory. '},
+        {'name': 'longCmd', 'command': 'sleep 3;find ~;sleep 3;find ~;sleep 3;find ~', 'desc' :  'longCmd is for testers to test status 2.'},
+    ]
+
+    if cmdName:
+        for cmd in commands:
+            if cmd['name'] == cmdName:
+                response_data = {
+                    'exp': cmd
+                }
+                response_data = json.dumps(response_data, indent=2)
+                return HttpResponse(response_data, content_type="application/json")
+
+        response_data = {
+            'message': 'Command not found.'
+        }
+        response_data = json.dumps(response_data, indent=2)
+        return HttpResponse(response_data, content_type="application/json")
+
+    else:
+        response_data = {
+        'commands': commands
+        }
+        
+        response_data = json.dumps(response_data, indent=2)
+
+        return HttpResponse(response_data, content_type="application/json")
+
