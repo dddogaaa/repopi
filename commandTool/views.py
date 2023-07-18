@@ -1,14 +1,15 @@
-from django.shortcuts import render
 from subprocess import Popen
 from datetime import datetime
 from django.conf import settings as Settings
 from .models import Result
-from django.http import HttpResponse,JsonResponse
+from django.http import HttpResponse,JsonResponse,StreamingHttpResponse
 import json
 import os
 import pytz
 import datetime
 import threading
+import json
+import re
 
 
 def get_data_folder():
@@ -82,57 +83,6 @@ def runCommand(name,command):
 
         return HttpResponse(json_response, content_type="application/json")
     
-def filter_commands(request):
-    status = request.GET.get("status", "")
-    command = request.GET.get('command','')
-
-    filtered_data = Result.objects.all()
-
-    if status:
-        filtered_data = filtered_data.filter(status=status)
-    if command:
-        filtered_data = filtered_data.filter(name=command)
-
-    commands = []
-    for data in filtered_data:
-        command_info = {
-            "id": data.id,
-            "status": data.status,
-            # "command": data.command,
-            "start_time": data.start_time,
-            "end_time": data.end_time,
-            "file": data.file
-        }
-        commands.append(command_info)
-
-    response = {"filtered_commands": commands}
-
-    response_data = json.dumps(response, indent=2)
-
-    return HttpResponse(response_data, content_type="application/json")
-
-def get_output_by_id(request, command_id):
-    try:
-        command = Result.objects.get(id=command_id)
-        output = ""
-        with open(command.file, "r") as file:
-            output = file.read()
-
-        # output = output.replace('\n', '/')
-
-        response = {"id": command.id, "command": command.command, "output": output}
-
-        json_response = json.dumps(response, indent=2)
-
-        return HttpResponse(json_response, content_type="application/json")
-
-    except Result.DoesNotExist:
-        error_response = {"error": "Command ID not found."}
-
-        json_response = json.dumps(error_response, indent=2)
-
-        return HttpResponse(json_response, status=404, content_type="application/json")
-    
 def list_outputs(request): 
     if request.method == "GET":
         outputs_dir = get_data_folder()
@@ -167,7 +117,8 @@ def showPath(request):
 
 def longCmd(request):
     name = 'longCmd'
-    cmd = 'sleep 3;find ~;sleep 3;find ~;sleep 3;find ~'
+    # cmd = 'sleep 3;find ~;sleep 3;find ~;sleep 3;find ~'
+    cmd = 'sleep 30;pwd;sleep 5;pwd;ls;ls;sleep 5;ls;sleep 8'
     return runCommand(name,cmd)
 
 def definitions(request):
@@ -201,6 +152,89 @@ def definitions(request):
         }
         
         response_data = json.dumps(response_data, indent=2)
+
+        return HttpResponse(response_data, content_type="application/json")
+
+def stream(id):
+    def gen_message(msg):
+        return '{}\n'.format(msg)
+
+    def iterator():
+        result = Result.objects.get(id=id)
+        prev_file_size = os.path.getsize(result.file)  
+        while result.status == 2:
+            file_size = os.path.getsize(result.file)  
+            if file_size > prev_file_size:
+                with open(result.file, 'r') as file:
+                    file.seek(prev_file_size)  
+                    new_lines = file.read().splitlines()
+                    for line in new_lines:
+                        yield gen_message(line)
+                prev_file_size = file_size 
+
+    stream = iterator()
+    response = StreamingHttpResponse(stream, status=200, content_type='text/event-stream')
+    response['Cache-Control'] = 'no-cache'
+    return response
+
+def filter(request):
+    status = request.GET.get("status", "")
+    id = request.GET.get("id")
+    url = request.build_absolute_uri()
+
+    if "stream" in url:
+        match = re.search(r'id=(\d+)', url)
+        if match:
+            extracted_number = match.group(1)
+            print(extracted_number)
+        return stream(extracted_number)
+
+    elif id:
+        try:
+            command = Result.objects.get(id=id)
+            output = ""
+            with open(command.file, "r") as file:
+                output = file.read()
+
+            output = output.replace('\n', '/')
+
+            response = {
+                "id": command.id,
+                "command": command.command, 
+                "output_path":command.file,
+                "start_time":command.start_time,
+                "end_time":command.end_time
+            }
+
+            json_response = json.dumps(response, indent=2)
+
+            return HttpResponse(json_response, content_type="application/json")
+
+        except Result.DoesNotExist:
+            error_response = {"error": "Command ID not found."}
+
+            json_response = json.dumps(error_response, indent=2)
+
+            return HttpResponse(json_response, status=404, content_type="application/json")
+
+    else:
+        filtered_data = Result.objects.filter(status=status)
+
+        commands = []
+        for data in filtered_data:
+            command_info = {
+                "id": data.id,
+                "status": data.status,
+                "command": data.command,
+                "start_time": data.start_time,
+                "end_time": data.end_time,
+                "file": data.file
+            }
+            commands.append(command_info)
+
+        response = {"filtered_commands": commands}
+
+        response_data = json.dumps(response, indent=2)
 
         return HttpResponse(response_data, content_type="application/json")
 
