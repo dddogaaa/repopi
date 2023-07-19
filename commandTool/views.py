@@ -1,8 +1,9 @@
 from subprocess import Popen
 from datetime import datetime
 from django.conf import settings as Settings
-from .models import Result
+from .models import Result 
 from django.http import HttpResponse,JsonResponse,StreamingHttpResponse
+from django.shortcuts import render
 import json
 import os
 import pytz
@@ -10,7 +11,6 @@ import datetime
 import threading
 import json
 import re
-
 
 def get_data_folder():
     return os.path.join(Settings.DATA_FOLDER)
@@ -182,6 +182,22 @@ def filter(request):
     id = request.GET.get("id")
     url = request.build_absolute_uri()
 
+    filtered_data = Result.objects.all()
+    status = int(status)
+
+    if status:  
+        if status == 1:
+            filtered_data = Result.objects.filter(status=1)  
+        elif status == 0:
+            filtered_data = Result.objects.filter(status=0)
+        elif status == 2:
+            filtered_data = Result.objects.filter(status=2)  
+        elif status == 3:
+            filtered_data = Result.objects.all()  
+        else:
+            return HttpResponse('Enter 0 or 1 or 2 or 3')
+            
+
     if "stream" in url:
         match = re.search(r'id=(\d+)', url)
         if match:
@@ -218,8 +234,6 @@ def filter(request):
             return HttpResponse(json_response, status=404, content_type="application/json")
 
     else:
-        filtered_data = Result.objects.filter(status=status)
-
         commands = []
         for data in filtered_data:
             command_info = {
@@ -237,4 +251,5 @@ def filter(request):
         response_data = json.dumps(response, indent=2)
 
         return HttpResponse(response_data, content_type="application/json")
+
 
