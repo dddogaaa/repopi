@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming Data</title>
+    <style>
+      #output {
+        padding: 5px;
+        border: 1px solid rgb(0, 0, 0);
+      }
+    </style>
+</head>
+<body>
+    <h1>Streaming Data</h1>
+    <pre id="output"></pre>
+
+    <script>
+        const ID = '{{ djID }}';
+        const url = `/streaming/${ID}/`;
+        async function streamData() {
+            const response = await fetch(url);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line) {
+                        const p = document.createElement('p');
+                        p.textContent = line;
+                        document.getElementById('output').appendChild(p);
+                    }
+                }
+            }
+        }
+        streamData();
+    </script>
+</body>
+</html>
