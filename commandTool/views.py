@@ -1,17 +1,20 @@
+# Imports
 import os
 import inotify.adapters
-from django.http import StreamingHttpResponse,HttpResponse,JsonResponse
-from django.shortcuts import render
-from subprocess import Popen
-from datetime import datetime
-from django.conf import settings as Settings
-from .models import Result
 import json
 import os
 import pytz
 import datetime
 import threading
 import json
+
+# Other Imports
+from django.http import StreamingHttpResponse,HttpResponse,JsonResponse
+from django.shortcuts import render
+from subprocess import Popen
+from datetime import datetime
+from django.conf import settings as Settings
+from .models import Result
 
 def stream(request,djID):
     def gen_message(msg):
@@ -141,46 +144,71 @@ def longCmd(request):
     # cmd = 'sleep 30;pwd;sleep 5;pwd;ls;ls;sleep 5;ls;sleep 8'
     return runCommand(name,cmd)
 
-def jobs(request):
-    all_records = Result.objects.all()
-    
-    commands = []
-    for data in all_records:
-        command_info = {
-            "id": data.id,
-            "status": data.status,
-            "command": data.command,
-            "start_time": data.start_time,
-            "end_time": data.end_time,
-            "file": data.file
-        }
-        commands.append(command_info)
+def jobs_w_status(request,status):
 
-    response = {"filtered_commands": commands}
+    objects = Result.objects.filter(status = status)
 
-    response_data = json.dumps(response, indent=2)
-
-    return HttpResponse(response_data, content_type="application/json")
-
-def get_job(request,id):
-    try:
-            command = Result.objects.get(id=id)
-
-            response = {
-                "id": command.id,
-                "command": command.command, 
-                "output_path":command.file,
-                "start_time":command.start_time,
-                "end_time":command.end_time
+    if status == None:
+        message = { "message" : "Valid options are 0,1,2" }
+        return HttpResponse(message, content_type = 'application/json')
+    else:
+        items_dict = {
+            obj.id: {
+                'ID': obj.id,
+                'Status': obj.status,
+                'Command': obj.command,
+                'Stime': obj.start_time,
+                'Etime': obj.end_time,
+                'File-DIR': obj.file,
+            }
+            for obj in objects
             }
 
-            json_response = json.dumps(response, indent=2)
+        response_json = json.dumps(items_dict, indent=4)
+        return HttpResponse(response_json, content_type='application/json')
 
-            return HttpResponse(json_response, content_type="application/json")
+def jobs(request):
 
-    except Result.DoesNotExist:
-        error_response = {"error": "Command ID not found."}
+    objects = Result.objects.all()
+    
+    items_dict = {
+        obj.id: {
+            'ID': obj.id,
+            'Status': obj.status,
+            'Command': obj.command,
+            'Stime': obj.start_time,    
+            'Etime': obj.end_time,
+            'File-DIR': obj.file,
+        }
+        for obj in objects
+    }
 
-        json_response = json.dumps(error_response, indent=2)
 
-        return HttpResponse(json_response, status=404, content_type="application/json")
+    response_json = json.dumps(items_dict, indent=4)
+    return HttpResponse(response_json, content_type='application/json')
+
+def jobs_w_id(request,id):
+    
+    if id == "":
+        message = {"error" : "Enter 0 or 1 or 2."}
+        return HttpResponse(message, content_type='application/json')
+    else:
+        objects = Result.objects.filter(id = id)
+
+    items_dict = {
+        obj.id: {
+            'ID': obj.id,
+            'Status': obj.status,
+            'Command': obj.command,
+            'Stime': obj.start_time,    
+            'Etime': obj.end_time,
+            'File-DIR': obj.file,
+        }
+        for obj in objects
+    }
+    response_json = json.dumps(items_dict, indent=4)
+    return HttpResponse(response_json, content_type='application/json')
+
+
+def stream2(request):
+    return render(request, "stream_request.html")
