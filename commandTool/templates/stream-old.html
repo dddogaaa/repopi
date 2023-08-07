@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming Data</title>
+    <style>
+    #output {
+        padding: 5px;
+    }
+    body {
+            margin: 5px 30px;
+            padding: 0;
+        }
+    #head {
+        padding: 10px 0px;
+        justify-content: space-around;
+        gap: 300px;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+    }
+    .h-cont img{
+        height: 70px;
+    } 
+    </style>
+</head>
+<body>
+    <header id="head">
+        <div class="h-cont">
+            <img src="https://forum.pardus.org.tr/uploads/default/original/2X/f/fd694c9e607fd76ee7e46ad5758708cb6f0704c6.png" alt="">
+        </div>
+        <div class="h-cont">
+            <h1>REPOPI | Output</h1>
+        </div>
+    </header>
+    <pre id="output"></pre>
+
+    <script>
+        const ID = '{{ djID }}';
+        const url = `/streaming/${ID}/`;
+        async function streamData() {
+            const response = await fetch(url);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line) {
+                        const p = document.createElement('p');
+                        p.textContent = line;
+                        document.getElementById('output').appendChild(p);
+                    }
+                }
+            }
+        }
+        streamData();
+    </script>
+</body>
+</html>

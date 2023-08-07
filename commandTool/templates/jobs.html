@@ -1,0 +1,69 @@
+{%extends 'base.html'%}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <header id="head">
+        <div class="h-cont">
+            {%block title%}
+            <h1>REPOPI | Jobs</h1>
+            {%endblock%}
+        </div>
+        {%block style%}
+            {{ block.super }}
+            <style>
+                pre {
+                    display: flex;
+                    flex-direction: column;
+                    width: inherit;
+                    overflow-y: scroll;
+                }
+                code {
+                    height: 600px;
+                }
+                .job-item {
+                    cursor: pointer;
+                }
+                .pagination-btn {
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 5px 10px;
+                    margin-right: 5px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                }
+
+                .pagination-btn:hover {
+                    background-color: rgb(252, 203, 40);
+                }
+                #stream-btn {
+                    font-size: 14px;
+                    cursor: pointer;
+                    border: 1px solid rgb(252, 203, 40);
+                    background-color: rgb(252, 203, 40);
+                    border-radius: 8px;
+                    margin: 10px 10px 10px 0px;
+                    padding: 10px;
+                    transition: background-color 0.3s ease;
+                }
+                
+                #stream-btn:hover {
+                    background-color: white;
+                }
+            </style>
+        {%endblock%}
+    </header>
+    {%block content%}
+        <div class="data" id="scroll">
+            <pre><code id="jobs-list"></code></pre>
+        </div>
+        <div id="filter-btn">
+            <button id="stream-btn" onclick="stream()">Output</button>
+        </div>
+        <div class="data" id="pagination-buttons">
+        </div>
+    {%endblock%}    
+</body>
+</html>

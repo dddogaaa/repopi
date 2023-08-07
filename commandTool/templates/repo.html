@@ -1,0 +1,63 @@
+{%extends 'base.html'%}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repopi | Repo</title>
+    {%block style%}
+    <style>
+        #left {
+            display: flex;
+            flex-direction: column;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: row;
+            padding-top: 3px;
+        }
+        .cmd {
+            border: 1px solid rgb(252, 203, 40);
+            border-radius: 10px;
+            font-size: 12px;
+            background-color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            padding: 5px 10px;
+            transition: font-size 0.3s ease;
+        }
+        .cmd:hover{
+            font-size: 20px;
+        }
+    </style>
+    {%endblock%}
+</head>
+<body>
+    <header id="head">
+        <div class="h-cont">
+            {%block title%}
+                <h1>REPOPI | Repo</h1>
+            {%endblock%}
+        </div>
+    </header>
+    {%block content%}
+    <main id="body">
+        <div class="b-cont" id="item1" >
+            <div class="buttons">
+                <button class="cmd" id="hello">Hello</button>
+                <button class="cmd" id="getList">Get List</button>
+                <button class="cmd" id="showPath">Show Path</button>
+                <button class="cmd" id="longCmd">Long Cmd</button>
+                <button class="cmd" id="wrong">Wrong</button>
+            </div>
+        </div>
+        <div class="b-cont" id="item2">
+            <pre><code id="response_data">{{ response_data|safe }}</code></pre>
+        </div>
+    </main>
+    {%endblock%}
+</body>
+</html>
