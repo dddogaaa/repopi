@@ -1,4 +1,4 @@
 django
-# inotify fo linux
+inotify #just for linux
 pytz
 paginator

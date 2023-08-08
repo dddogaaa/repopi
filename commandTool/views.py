@@ -12,65 +12,28 @@ import threading
 import json
 from django.core.paginator import Paginator
 
-#import inotify #for linux
-# def stream(request,djID):
-#     def gen_message(msg):
-#         return '{}'.format(msg)
+#-----------for linux-----------
 
-#     def iterator():      
-#         result = Result.objects.get(id=djID)
-#         path = result.file
-#         with open(path, 'r') as file:
-#             file_content = file.read()
-#             yield gen_message(file_content)
-
-#         notifier = inotify.adapters.Inotify()
-#         notifier.add_watch(os.path.dirname(path))
-#         prev_file_size = os.path.getsize(path)
-#         while True:
-#             for event in notifier.event_gen():
-#                 if event is not None:
-#                     (_, type_names, _, filename) = event
-#                     if filename == os.path.basename(path) and 'IN_MODIFY' in type_names:
-#                         file_size = os.path.getsize(path)
-#                         if file_size > prev_file_size:
-#                             with open(path, 'r') as file:
-#                                 file.seek(prev_file_size)
-#                                 new_lines = file.read().splitlines()
-#                                 for line in new_lines:
-#                                     yield gen_message(line)
-#                             prev_file_size = file_size
-                        
-
-#     stream = iterator()
-#     response = StreamingHttpResponse(stream, status=200, content_type='text/event-stream')
-#     response['Cache-Control'] = 'no-cache'
-
-#     return response
-
-import selectors #for mac
-
-def stream(request, djID):
+import inotify.adapters
+def stream(request,djID):
     def gen_message(msg):
         return '{}'.format(msg)
 
-    def iterator():
+    def iterator():      
         result = Result.objects.get(id=djID)
         path = result.file
         with open(path, 'r') as file:
             file_content = file.read()
             yield gen_message(file_content)
 
-        kqueue = selectors.DefaultSelector()
-        file_descriptor = open(path, 'rb')
-        kqueue.register(file_descriptor, selectors.EVENT_READ)
-
+        notifier = inotify.adapters.Inotify()
+        notifier.add_watch(os.path.dirname(path))
         prev_file_size = os.path.getsize(path)
-        try:
-            while True:
-                events = kqueue.select()
-                for key, mask in events:
-                    if key.fileobj == file_descriptor and mask & selectors.EVENT_READ:
+        while True:
+            for event in notifier.event_gen():
+                if event is not None:
+                    (_, type_names, _, filename) = event
+                    if filename == os.path.basename(path) and 'IN_MODIFY' in type_names:
                         file_size = os.path.getsize(path)
                         if file_size > prev_file_size:
                             with open(path, 'r') as file:
@@ -79,11 +42,7 @@ def stream(request, djID):
                                 for line in new_lines:
                                     yield gen_message(line)
                             prev_file_size = file_size
-        except KeyboardInterrupt:
-            pass
-        finally:
-            kqueue.unregister(file_descriptor)
-            file_descriptor.close()
+                        
 
     stream = iterator()
     response = StreamingHttpResponse(stream, status=200, content_type='text/event-stream')
@@ -91,9 +50,53 @@ def stream(request, djID):
 
     return response
 
-# def index(request,djID):
-#     context = {'djID': djID}
-#     return render(request, 'stream.html',context)
+#------------for mac-------------
+
+# import selectors 
+
+# def stream(request, djID):
+#     def gen_message(msg):
+#         return '{}'.format(msg)
+
+#     def iterator():
+#         result = Result.objects.get(id=djID)
+#         path = result.file
+#         with open(path, 'r') as file:
+#             file_content = file.read()
+#             yield gen_message(file_content)
+
+#         kqueue = selectors.DefaultSelector()
+#         file_descriptor = open(path, 'rb')
+#         kqueue.register(file_descriptor, selectors.EVENT_READ)
+
+#         prev_file_size = os.path.getsize(path)
+#         try:
+#             while True:
+#                 events = kqueue.select()
+#                 for key, mask in events:
+#                     if key.fileobj == file_descriptor and mask & selectors.EVENT_READ:
+#                         file_size = os.path.getsize(path)
+#                         if file_size > prev_file_size:
+#                             with open(path, 'r') as file:
+#                                 file.seek(prev_file_size)
+#                                 new_lines = file.read().splitlines()
+#                                 for line in new_lines:
+#                                     yield gen_message(line)
+#                             prev_file_size = file_size
+#         except KeyboardInterrupt:
+#             pass
+#         finally:
+#             kqueue.unregister(file_descriptor)
+#             file_descriptor.close()
+
+#     stream = iterator()
+#     response = StreamingHttpResponse(stream, status=200, content_type='text/event-stream')
+#     response['Cache-Control'] = 'no-cache'
+
+#     return response
+
+#------------------------------------
+
 
 def index(request):
     return render(request,'stream.html')
