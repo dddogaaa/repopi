@@ -16,5 +16,8 @@ urlpatterns = [
     path('repo/showPath/', views.showPath),
     path('repo/longCmd/', views.longCmd),
     path('repo/wrong/',views.wrong),
+    path('repo/mirrorNFF/',views.mirrorNFF),
+    path('repo/mirrorUpdate/',views.mirrorUpdate),
+    path('repo/mirrorDrop/',views.mirrorDrop),
     path('home/',views.base),
 ]

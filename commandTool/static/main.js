@@ -138,6 +138,20 @@ function addEventListenersToButtons() {
         fetchDjangoViewData('/repo/wrong/');
         console.log('5');
     });
+
+    document.getElementById('mirrorNFF').addEventListener('click', function() {
+        fetchDjangoViewData('/repo/mirrorNFF/');
+        console.log('6');
+    });
+
+    document.getElementById('mirrorU-NFF').addEventListener('click', function() {
+        fetchDjangoViewData('/repo/mirrorUpdate/');
+        console.log('6');
+    });
+    document.getElementById('mirrorD-NFF').addEventListener('click', function() {
+        fetchDjangoViewData('/repo/mirrorDrop/');
+        console.log('6');
+    });
 }
 
 addEventListenersToButtons();

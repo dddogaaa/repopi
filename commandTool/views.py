@@ -3,7 +3,7 @@ from django.shortcuts import render
 from subprocess import Popen
 from datetime import datetime
 from django.conf import settings as Settings
-from .models import Result
+from .models import Result, Repo
 import json
 import os
 import pytz
@@ -189,7 +189,6 @@ def wrong(request):
     cmd = ':D'
     return runCommand(name,cmd)
 
-
 def getList(request):
     name = 'getList'
     cmd = 'ls'
@@ -372,3 +371,47 @@ def repo(request):
 
 def jobs(request):
     return render(request, 'jobs.html')
+
+def mirrorNFF(request):
+    name = 'm_NonFreeFirmware'
+    create = {
+        'mirrorName': 'pardus-23deb-firmware-arm64',
+        'archiveUrl': Repo._meta.get_field('archiveUrl').get_default(),  
+        'dist': 'yirmiuc-deb',
+        'components': 'non-free-firmware',
+        'architectures': 'arm64'
+    }
+
+    if create['architectures']:
+        cmd = f"aptly mirror create -architectures='{create['architectures']}' {create['mirrorName']} {create['archiveUrl']} {create['dist']} {create['components']}"
+    else:
+        cmd = f"aptly mirror create {create['mirrorName']} {create['archiveUrl']} {create['dist']} {create['components']}"
+    
+    Repo.objects.create(**create)
+
+    return runCommand(name,cmd)
+
+def mirrorUpdate(request):
+    name='mu_NonFreeFirmware'
+    cmd = 'aptly mirror update pardus-23deb-firmware-arm64'
+
+    create = {
+        'mirrorName': 'update pardus-23deb-firmware-arm64'
+    }
+
+    Repo.objects.create(**create)
+
+    return runCommand(name,cmd)
+
+def mirrorDrop(request):
+    name='md_NonFreeFirmware'
+
+    cmd = 'aptly mirror drop pardus-23deb-firmware-arm64'
+
+    create = {
+        'mirrorName': 'drop pardus-23deb-firmware-arm64'
+    }
+
+    Repo.objects.create(**create)
+
+    return runCommand(name,cmd)
