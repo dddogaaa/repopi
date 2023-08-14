@@ -1,7 +1,0 @@
-commandTool
-db.sqlite3
-LICENSE
-manage.py
-README.md
-repopi
-requirements.txt
