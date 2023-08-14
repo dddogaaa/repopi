@@ -227,6 +227,7 @@ def jobs_data(request):  #change this to jobs for jsonresponse
 
     response_data = {
         "total_num": paginator.count,
+        "each_on_page": default_value,
         "total_pages": paginator.num_pages,
         "current_page": current_page.number,
         "has_next": current_page.has_next(),
@@ -418,3 +419,83 @@ def mirrorDrop(request):
     Repo.objects.create(**create)
 
     return runCommand(name,cmd)
+
+def jobs_e(request):
+    command = request.GET.get('command', '')
+    status = request.GET.get('status', '')
+    per_num_from_user = request.GET.get('each', '')
+    page_number_from_user = int(request.GET.get('page', 1))
+    records = Result.objects.all().order_by('id')
+    record_count = records.count() 
+    default_per_page = 20
+
+    if per_num_from_user:
+        default_per_page = int(per_num_from_user)
+   
+    
+    page_count = int(record_count) // default_per_page
+
+    if record_count % default_per_page != 0:
+        page_count += 1
+
+    if page_count < 1:
+        return HttpResponse("Not enough page.")
+
+    if page_number_from_user > page_count:
+        return HttpResponse("ERROR")
+
+    if command and status:
+        records = records.filter(name=command, status=status).order_by('id')
+        record_count = records.count()
+    elif command:
+        records = records.filter(name=command)
+        record_count = records.count()
+    elif status:
+        records = records.filter(status=status)
+        record_count = records.count()
+    else:
+        pass
+
+    page_count = int(record_count) // default_per_page
+
+    if record_count % default_per_page != 0:
+        page_count += 1
+
+    if page_count < 1:
+        return HttpResponse("Not enough page.")
+
+    if page_number_from_user > page_count:
+        return HttpResponse("ERROR")
+
+    paginator = Paginator(records, default_per_page)
+
+    if page_number_from_user:
+        page_number = page_number_from_user
+    else:
+        page_number = 1
+        
+    current_page = paginator.page(page_number)
+
+
+    response_data = {
+        "each_on_page": default_per_page,
+        "total_objects": record_count,
+        "total_pages": paginator.num_pages,
+        "current_page": current_page.number,
+        "has_next": current_page.has_next(),
+        "has_previous": current_page.has_previous(),
+        "history": [
+            {
+                "ID": data.id,
+                "Command Name": data.name,
+                "Status": data.status,
+                "Command": data.command,
+                "Stime": data.start_time,
+                "Etime": data.end_time,
+                "File-DIR": data.file
+            } for data in current_page
+        ],
+    
+    }
+
+    return HttpResponse(json.dumps(response_data, indent=2), content_type="application/json")
