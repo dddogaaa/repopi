@@ -52,6 +52,54 @@
                 #stream-btn:hover {
                     background-color: white;
                 }
+
+                #f-button 
+                {
+                    font-size: 14px;
+                    cursor: pointer;
+                    border: 1px solid rgb(252, 203, 40);
+                    background-color: rgb(252, 203, 40);
+                    border-radius: 8px;
+                    margin: 10px 10px 10px 0px;
+                    padding: 10px;
+                    transition: background-color 0.3s ease;
+                }
+
+                #f-button:hover
+                {
+                    background-color: white;
+                }
+                #status 
+                {
+                   background-color: white;
+                    border: 1px solid rgba(0, 0, 0, 0.212);
+                    height: 30px;
+                    width: 169px;
+                    padding: 0px 10px;
+                }
+                .cmd 
+                {
+                    
+                    width: 148px;
+                    height: 30px;  
+                    padding: 0px 10px;
+                    border: 1px solid rgba(0, 0, 0, 0.212);
+                       
+                }
+                /* #lower
+                {
+                    display: flex;
+                } */
+                
+
+                #filter-btn {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center; 
+                    gap: 20px;
+                    flex-wrap: wrap;
+                }
+                
             </style>
         {%endblock%}
     </header>
@@ -59,11 +107,38 @@
         <div class="data" id="scroll">
             <pre><code id="jobs-list"></code></pre>
         </div>
-        <div id="filter-btn">
-            <button id="stream-btn" onclick="stream()">Output</button>
+        <div id="lower" >
+            <div id="filter-btn" class="flex-container">
+                <button id="stream-btn" onclick="stream()">Output</button>
+                <div class="selection">
+                    <label for="status"><b> Filter by Status </b></label>
+                    <select name="status" id="status">
+                        <option value = ""> None </option>
+                        <option value = "0"> 0 -> Error </option>
+                        <option value = "1"> 1 -> Success </option>
+                        <option value = "2"> 2 -> Continues </option>
+                    </select>
+                </div>
+                <div class="flex-item">
+                    <label for = "cmd"><b> Filter by Commands </b></label>
+                    <input type = "text" id = "cmd" name = "cmd" class="cmd">
+                </div>
+                <div class="flex-item">
+                    <label for = "page"><b> Page Number</b></label>
+                    <input type = "text" id = "page" name = "page"  class="cmd">
+                </div>
+                <div class="flex-item">
+                    <label for = "each"><b> Each</b></label>
+                    <input type = "text" id = "each" name = "each"  class="cmd">
+                </div>  
+                <div class="f-button">
+                    <button id="f-button" type = "submit" onclick="fetchData()">Filter</button>
+                </div>
+            </div>
         </div>
         <div class="data" id="pagination-buttons">
         </div>
     {%endblock%}    
+
 </body>
 </html>

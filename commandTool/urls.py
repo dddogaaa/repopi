@@ -20,4 +20,5 @@ urlpatterns = [
     path('repo/mirrorUpdate/',views.mirrorUpdate),
     path('repo/mirrorDrop/',views.mirrorDrop),
     path('home/',views.base),
+    path('jobs_e/', views.jobs_e),
 ]
