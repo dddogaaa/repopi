@@ -376,6 +376,7 @@ def mirrorNFF(request):
     name = 'm_NonFreeFirmware'
     create = {
         'mirrorName': 'pardus-23deb-firmware-arm64',
+        'mirrorType': 'create',
         'archiveUrl': Repo._meta.get_field('archiveUrl').get_default(),  
         'dist': 'yirmiuc-deb',
         'components': 'non-free-firmware',
@@ -396,7 +397,8 @@ def mirrorUpdate(request):
     cmd = 'aptly mirror update pardus-23deb-firmware-arm64'
 
     create = {
-        'mirrorName': 'update pardus-23deb-firmware-arm64'
+        'mirrorName': 'pardus-23deb-firmware-arm64',
+        'mirrorType': 'update'
     }
 
     Repo.objects.create(**create)
@@ -409,7 +411,8 @@ def mirrorDrop(request):
     cmd = 'aptly mirror drop pardus-23deb-firmware-arm64'
 
     create = {
-        'mirrorName': 'drop pardus-23deb-firmware-arm64'
+        'mirrorName': 'pardus-23deb-firmware-arm64',
+        'mirrorType': 'drop'
     }
 
     Repo.objects.create(**create)
