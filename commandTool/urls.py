@@ -19,6 +19,7 @@ urlpatterns = [
     path('repo/mirrorNFF/',views.mirrorNFF),
     path('repo/mirrorUpdate/',views.mirrorUpdate),
     path('repo/mirrorDrop/',views.mirrorDrop),
+    path('',views.base),
     path('home/',views.base),
     path('jobs_e/', views.jobs_e),
 ]
